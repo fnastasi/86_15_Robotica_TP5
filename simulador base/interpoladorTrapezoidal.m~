@@ -1,0 +1,12 @@
+function [thetaD, thetapD, theta2pD] = interpoladorTrapezoidal(thetaA,thetaB,thetaC,T1,tseg,tacc)
+    DA = thetaA - thetaB;
+    DC = thetaC - thetaB;
+    
+    % Zona 1
+    if tseg <= tacc && tseg >= -tacc
+        thetaD =(DC/T1)*((tseg+tacc)^2)/(4*tacc) + (DA/tacc)*((tseg-tacc)^2)/(4*tacc) +thetaB;
+        thetapD = DC*( (tseg+tacc)/(2*tacc))/T1 + DA*((tseg-tacc)/(2*tacc))/tacc; 
+        theta2pD =  (DC/T1 + DA/tacc) / (2*tacc);
+    end
+   
+    if tseg >= tseg 

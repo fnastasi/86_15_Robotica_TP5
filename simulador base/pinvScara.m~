@@ -1,0 +1,18 @@
+function var_art = pinvScara(X,g)
+    % X = [x,y,z]'
+    x = X(1);
+    y = X(2);
+    
+    % Parámetros del doble péndulo
+    a1 = 0.400;
+    a2 = 0.300;
+    
+    C2 =  (x^2 + y ^2 -a1^2 -a2^2)/(2*a1*a2);
+    if C2 <= 1
+        t2 = atan2(g*sqrt(1-C2^2),C2);
+        P = [x y]';
+        M = [a1 + a2*C2 -a2*g*]
+    else
+        t2 = NaN;
+        t1 = NaN;
+    end
