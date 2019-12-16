@@ -13,10 +13,13 @@ RPM = 2*pi/60;
 % Instrucciones de movimiento
 % **************************************************************
 % Matriz de puntos destinos. Los puntos destino se agregan como columnas a la matriz
-pdest=[-300       300     0 1;
-       300        300     0 1]';
+% Los puntos destinos tienen la forma [x y z g]' donde x,y,z están en m y
+% g puede ser 1 o -1
+pdest=[-0.300       0.300     0 1;
+       0.300        0.300     0 1;
+       0.300        0.300     0 1]';
 % Los tiempos deseados de cada movimiento se ingresan en un vector columna
-TDeseado=[0.1];
+TDeseado=[0,    1,  1];
 
 % **************************************************************
 % Parametros de la simulacion
@@ -42,9 +45,23 @@ tacc=100E-3;	% [seg]
 % **************************************************************
 % Parametros del controlador
 % **************************************************************
-Kp=[7000 0;0 2000];
-Kd=[300 0;0 25];
 
+%Kp=[7000 0;0 2000];
+%Kd=[300 0;0 25];
+
+wn =2*pi*2 ;
+Kp =(Jm*wn^2)./(Km*N); % ATENCION!!!!!!!!!!!!!!!!!!!! Reemplazar Jm y Bm por Jeff y Beff
+Kp(isnan(Kp)) = 0; % Agrego esta línea porque por algún motivo hacer 0 / "un número" devuelve NaN
+
+Kd = (2*sqrt(Km*N*Kp*Jm) - Bm)./ (Km*N); % ATENCION!!!!!!!!!!!!!!!!!!!! Reemplazar Jm y Bm por Jeff y Beff
+Kd(isnan(Kd)) = 0; 
+
+
+simulador_tray_joint;
+%simulador_tray_lineal;
+
+%{ 
+%Código de back up
 
 % **************************************************************
 % Simulador
@@ -52,28 +69,28 @@ Kd=[300 0;0 25];
 % Siempre arranca desde pdest(:,1) con velocidad nula y termina deteniéndose en el ultimo punto 
 % Se usa la función pinvScara, que sirve para calcular el problema inverso
 % Calculo los objetivos del nuevo segmento
-%thetaA = pinvScara(pdest(:,1));
-thetaA = zeros(2,1);
+thetaA = pinvScara(pdest(:,1));
 thetaB = thetaA;
+
 
 % Inicializo los estados del sistema
 theta = thetaA;
 thetap = zeros(size(theta));
+theta2p = zeros(size(theta));
+
 
 pasoSimu = 1;
 
 % Voy a procesar cada una de las instrucciones de movimiento
 fprintf('Simulando ');
 % Iteración por todos los puntos destinos
-%for np=2:size(pdest,2)
-for np=1
-    % Calculo los objetivos del nuevo segmento
-   %thetaC = pinvScara(pdest(:,np));
-   %DC=thetaC-thetaB;
+for np=2:size(pdest,2)
+   % Calculo los objetivos del nuevo segmento
+   thetaC = pinvScara(pdest(:,np));
+   DC=thetaC-thetaB;
 
    % Se calcula tiempo de segmento
-   %T1 = max([max(DC./v_max ),TDeseado(np),2*tacc]);
-   T1=0.5;
+   T1 = max([max(DC./v_max ),TDeseado(np-1),2*tacc]);
    
    % Calculo el segmento
    tseg=-tacc+Tm;
@@ -85,10 +102,8 @@ for np=1
 
       % Obtengo la siguiente referencia usando la función
       % generadorTrayectoriaJoint 
-      %[thetaD thetapD theta2pD] = interpoladorTrapezoidal(thetaA,thetaB,thetaC,T1,tseg,tacc);
-      thetaD=[pi/4 pi/4]'; 
-      thetapD=zeros(2,1);
-      theta2pD=zeros(2,1);
+      [thetaD, thetapD, theta2pD] = interpoladorTrapezoidal(thetaA,thetaB,thetaC,T1,tseg,tacc);
+      
       
       % Calculo el torque de control. En este caso es un PD con
       % compensación por peso propio
@@ -135,27 +150,29 @@ for np=1
    end
    
    % Asignaciones de referencias para calcular el próximo segmento
-   %thetaA=thetaD;
-   %thetaB=thetaC;
+   thetaA=thetaD;
+   thetaB=thetaC;
 end
 fprintf(' OK\n');
+%}
+
 
 % Calculo las trayectorias
-%[ pos_ref,config_ref ] = pDirecto(acum_thetaD(:,2:end),DH);
-%[ pos,config ] = pDirecto(acum_theta(:,1:end-1),DH);
+[ pos_ref,config_ref ] = pDirecto_vec(acum_thetaD(:,2:end),DH);
+[ pos,config ] = pDirecto_vec(acum_theta(:,1:end-1),DH);
 
 % Grafica de resultados
 graficarCurvas(acum_tr, acum_theta, acum_thetaD, acum_thetap, acum_thetapD, acum_theta2p, acum_theta2pD, acum_u, "Pendulo doble");
 
 
-%figure()
-%plot(pos(:,1),pos(:,2));
-%hold on
-%plot(pos_ref(:,1),pos_ref(:,2));
-%legend('Ref','Real','Location','southwest');
-%title('Trayectoria');
-%ylabel('Y [m]');xlabel('X [m]'); grid on
-%axis('equal');
+figure()
+plot(pos(1,:),pos(2,:));
+hold on
+plot(pos_ref(1,:),pos_ref(2,:));
+legend('Real','Ref','Location','southwest');
+title('Trayectoria');
+ylabel('Y [m]');xlabel('X [m]'); grid on
+axis('equal');
 
 %figure;
 %delta_pos = pos-pos_ref;

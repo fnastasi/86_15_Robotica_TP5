@@ -1,14 +1,16 @@
 function var_art = pinvScara(pose)
     % pose = [x,y,z,g]' ; siendo g el índice de configuración.
-    % Las coordenadas de pose deben pasarse en milímetros
+    % Las coordenadas de pose deben pasarse en metros
     x = pose(1);
     y = pose(2);
     z = pose(3);
     g = pose(4);
     
+    global DH;
+    
     % Parámetros del doble péndulo
-    a1 = 400; %mm
-    a2 = 300; %mm
+    a1=DH(1,1); %[m]
+    a2=DH(2,1); %[m]
     
     C2 =  (x^2 + y ^2 -a1^2 -a2^2)/(2*a1*a2);
     if abs(C2) <= 1

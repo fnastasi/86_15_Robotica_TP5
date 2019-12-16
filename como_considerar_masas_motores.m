@@ -8,6 +8,9 @@ mm2 = 1.7;        % Kg
 
 % Momento de inercia. Como el rotor es muy liviano en comparación al estator, consideramos que el aporte al momento de inercia del eslabón 1 es producido solamente por el estator. Se estima el valor según los datos del manual considerándolo un cilindro de densidad constante
 Igm2zz = mm2*(.11/2)^2;  % Kg m^2
+% Falta un /2 ?
+%Igm2zz = (mm2/2)*(.11/2)^2;  % Kg m^2
+
 
 % Parámetros dinámicos para el eslabón 1 con la carcaza del motor 2
 % calculados al origen de la terna del eslabón. 
