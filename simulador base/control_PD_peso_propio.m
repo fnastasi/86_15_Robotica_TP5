@@ -6,8 +6,8 @@
 % Calculo el torque de control. En este caso es un PD con
 % compensación por peso propio
 [M,H,G] = calcMatrizDinamica([theta;thetap]);
-%u = Kp*(thetaD-theta)-Kd*thetap + (N.'*Km)^-1*G ;
-u = Kp*(thetaD-theta)+Kd*(thetapD-thetap) +(Jm*theta2pD +Bm*thetapD)/(Km*N) ; % ATENCION!!!!!!!!!!!!!!!!!!!! Reemplazar Jm y Bm por Jeff y Beff
+u = Kp*(thetaD-theta)-Kd*thetap + (N.'*Km)^-1*G ;
+%u = Kp*(thetaD-theta)+Kd*(thetapD-thetap) +(Km*N)\(Jeff*theta2pD +Bm*N*N*thetapD) ;
 
 
 % Integro numericamente sobre el modelo completo de la planta      			

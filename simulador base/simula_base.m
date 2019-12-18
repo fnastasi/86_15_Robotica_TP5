@@ -49,15 +49,34 @@ tacc=100E-3;	% [seg]
 %Kp=[7000 0;0 2000];
 %Kd=[300 0;0 25];
 
-wn =2*pi*2 ;
-Kp =(Jm*wn^2)./(Km*N); % ATENCION!!!!!!!!!!!!!!!!!!!! Reemplazar Jm y Bm por Jeff y Beff
+% Valores de la matriz M para realizar aproximación. m22 es constante por
+% lo que no se realiza aproximación
+t2 = sym('t2');
+m22 = I02zz + 2*a2*Xg2*m2 + a2^2*m2;
+m12 = m22 + a1* ((a2+Xg2)*cos(t2)-Yg2*sin(t2))*m2; % 6*cos(t2)/25 + 3/20
+m12_max = double(vpa(subs(m12, 1)));
+m12_min = double(vpa(subs(m12, -1)));
+%m12_max = 6/25 + 3/20;
+%m12_min = -6/25 + 3/20;
+m11_max = I01zz + 2*a1*Xg1*m1 + a1^2*(m1+m2) + 2*m12_min - m22;
+m11_min = I01zz + 2*a1*Xg1*m1 + a1^2*(m1+m2) + 2*m12_min - m22;
+
+m11rr = (m11_max + m11_min)/2;
+m22rr = I02zz + 2*a2*Xg2*m2 + a2^2*m2;
+Jeff = Jm*N*N + [m11rr, 0; 0, m22rr];
+
+wn =2*pi*30 ;
+Kp =(Km*N)\(Jeff*wn^2); 
 Kp(isnan(Kp)) = 0; % Agrego esta línea porque por algún motivo hacer 0 / "un número" devuelve NaN
 
-Kd = (2*sqrt(Km*N*Kp*Jm) - Bm)./ (Km*N); % ATENCION!!!!!!!!!!!!!!!!!!!! Reemplazar Jm y Bm por Jeff y Beff
+Kd = (Km*N)\(2*sqrt(Km*N*Kp*Jeff) - Bm*N*N); 
 Kd(isnan(Kd)) = 0; 
 
 
-simulador_tray_joint;
+simulador_tray_lineal_joint
+
+%simulador_tray_joint;
+
 %simulador_tray_lineal;
 
 %{ 
@@ -174,12 +193,47 @@ title('Trayectoria');
 ylabel('Y [m]');xlabel('X [m]'); grid on
 axis('equal');
 
-%figure;
-%delta_pos = pos-pos_ref;
-%error = sqrt(delta_pos(:,1).^2+delta_pos(:,2).^2);
-%plot(acum_tr(1:end-1),error*1000);
-%title('Error de seguimiento');
-%ylabel('Error [mm]');xlabel('Tiempo [s]'); grid on
+figure;
+delta_pos = pos-pos_ref;
+error = sqrt(delta_pos(1,:).^2+delta_pos(2,:).^2);
+plot(acum_tr(1:end-1),error*1000);
+title('Error de seguimiento');
+ylabel('Error [mm]');xlabel('Tiempo [s]'); grid on
 
-%mean(error)*1000
-%std(error)*1000
+
+
+figure;
+plot(acum_tr(1:end-1),pos_ref(1,:)*1000);
+hold on
+plot(acum_tr(1:end-1),pos(1,:)*1000);
+legend('Ref','Real','Location','southwest');
+title('Posición X');
+ylabel('Posición X [mm]');xlabel('Tiempo [s]'); 
+grid on
+
+figure;
+plot(acum_tr(1:end-1),pos_ref(2,:)*1000);
+hold on
+plot(acum_tr(1:end-1),pos(2,:)*1000);
+legend('Ref','Real','Location','southwest');
+title('Posición Y');
+ylabel('Posición Y [mm]');xlabel('Tiempo [s]'); 
+grid on
+
+
+mean(error)*1000;
+std(error)*1000;
+
+if all(eig(N'*Km*Kd + N'*Bm*N) > 0)
+    fprintf("La matriz N'KmKd + N'BmN es definida positiva -> Asintoticamente estable\n")
+else
+    fprintf("La matriz no N'KmKd + N'BmN es definida positiva\n")
+end
+
+
+if any(pos(2,:) > 0.3005) || any(pos(2,:) < 0.2995)
+    fprintf('La trayectoria no se encuentra dentro de 0.5 mm de la trayectoria deseada\n');
+else
+    fprintf('La trayectoria se encuentra dentro de 0.5 mm de la trayectoria deseada\n');
+end
+

@@ -98,22 +98,34 @@ Tau_max = 1;       % [Nm]
 
 
 
-
+%{
 % Motor U9D-A
-% fm = 1/Tm
-fm = 1/0.01127; % s  
-% wm = 2*pi*fm;
-% fe = 1/Te 
-fe = 1/0.05E-3; % s 
-% we = 2*pi*fe;
+wm = 2*pi/Tm;
+%we = ;
 Jm = 3.95E-5*eye(2,2); % Nm      
-Bm = 5.73E-5*eye(2,2);         % Nm/(rad/s)   
-N = 1*eye(2,2);
+Bm = 5.73E-4*eye(2,2);         % Nm/(rad/s)   
+N = 100*eye(2,2);
 Fm = 0*[2.8/100;2.8/100];	% Si deseara considerar su efecto, incluirla en el modelo
 
-Km=1*eye(2);      % Nm/A
+Km=0.048*eye(2);      % Nm/A
 
 % Maximos del motor
 v_max = 6000*RPM;   % [rad/seg]
 Tau_max = 3.199;       % [Nm]
+%}
+
+
+% Motor U9D-D
+wm = 2*pi/Tm;
+%we = ;
+Jm = 3.95E-5*eye(2,2); % Nm      
+Bm = 0.8*3/(pi*1E3)*eye(2,2);         % Nm/(rad/s)   
+N = 100*eye(2,2);
+Fm = 0*[2.8/100;2.8/100];	% Si deseara considerar su efecto, incluirla en el modelo
+
+Km=0.076*eye(2);      % Nm/A
+
+% Maximos del motor
+v_max = 6000*RPM;   % [rad/seg]
+Tau_max = 5.134;       % [Nm]
 

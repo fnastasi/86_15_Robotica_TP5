@@ -7,7 +7,19 @@
 % compensación por peso propio
 u = Kp*(thetaD-theta)-Kd*thetap;
 
-% Integro numericamente sobre el modelo completo de la planta      			
+% Saturación de los motores
+
+Tau_m = Km*u;
+%u(abs(u)>Tau_max*[1;1]) = diag(sign(u))*Tau_max*[1;1];
+if (abs(Tau_m(1)) > Tau_max)
+    u(1) = sign(u(1))*Tau_max/(Km(1,1));
+end
+
+if (abs(Tau_m(2)) > Tau_max)
+    u(2) = sign(u(2))*Tau_max/(Km(2,2));
+end
+
+% Integro numericamente sobre el modelo completo de la planta
 % modeloDinamico es una funcion definida en un script de la siguiente
 % manera: 
 % function dXdt = modeloDinamico(t,X,Torq)
